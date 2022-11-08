@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  budgetapi:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: api
+    env_file:
+      - .env
+    tty: true  # persist (should use 'sh' as entrypoint)
+    ports:
+      - 8000:8000
+  
