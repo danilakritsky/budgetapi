@@ -1,2 +1,2 @@
 # budgetapi
-An API to track your spendings.
+An API to track spendings.
