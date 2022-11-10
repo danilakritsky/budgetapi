@@ -10,4 +10,8 @@ class CategoryAdmin(admin.ModelAdmin):
         'category_name'
     ]
 
+    list_editable = [
+        'category_name'
+    ]
+
 admin.site.register(Category, CategoryAdmin)
