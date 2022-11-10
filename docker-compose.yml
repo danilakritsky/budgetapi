@@ -6,6 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: api
+    volumes:
+      - ./budgetapi/:/home/budgetapi/budgetapi
     env_file:
       - .env
     tty: true  # persist (should use 'sh' as entrypoint)
