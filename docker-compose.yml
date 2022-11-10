@@ -7,10 +7,11 @@ services:
       dockerfile: Dockerfile
     container_name: api
     volumes:
-      - ./budgetapi/:/home/budgetapi/budgetapi
+      - ./budgetapi/:/root/budgetapi
     env_file:
       - .env
     tty: true  # persist (should use 'sh' as entrypoint)
+    command: poetry run python3 budgetapi/manage.py runserver 0.0.0.0:8000
     ports:
       - 8000:8000
   
