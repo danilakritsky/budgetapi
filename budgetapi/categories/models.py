@@ -1,8 +1,8 @@
-from django.db import models
 from django.conf import settings
 
 # Create your models here.
 from django.db import models
+
 
 DEFAULT_CATEGORIES: list[str] = [
     "Забота о себе",
@@ -24,11 +24,9 @@ class Category(models.Model):
         verbose_name_plural = "categories"
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
     )
     category_name = models.CharField(max_length=50)
-    
-    def __str__(self):
-        return f'{self.category_name}'
 
+    def __str__(self):
+        return f"{self.category_name}"

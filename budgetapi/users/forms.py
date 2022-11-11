@@ -1,12 +1,13 @@
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+
 from .models import User
+
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm):
         model = User
-        fields = UserCreationForm.Meta.fields + (
-            "subscribed",
-        )
+        fields = UserCreationForm.Meta.fields + ("subscribed",)
+
 
 class CustomUserChangeForm(UserChangeForm):
     class Meta:
