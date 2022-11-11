@@ -12,6 +12,7 @@ class UserAdmin(UserAdmin):
     add_form = UserCreationForm
 
     list_display = [
+        "id",
         "email",
         "username",
         "subscribed",
