@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions
+from rest_framework.response import Response
 
 from .models import Category
 from .serializers import CategorySerializer
@@ -9,8 +10,13 @@ class CategoryList(generics.ListCreateAPIView):
     serializer_class = CategorySerializer
 
     def get_queryset(self):
-            user = self.request.user
-            return Category.objects.filter(user=user)
+        user = self.request.user
+        return Category.objects.filter(user=user)
+    
+    def post(self, request):
+        if request.data['user'] == self.request.user.id:
+            return Response(request.data)
+        return Response({})
 
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthor,)
