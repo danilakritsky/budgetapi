@@ -12,7 +12,7 @@ class User(AbstractUser):
 @receiver(post_save, sender=User)
 def add_new_user_categories(instance, created, **kwargs):
     """Create default categories when a new user is created."""
-    if created:
+    if created and not instance.is_superuser:
         Category.objects.bulk_create(
             [
                 Category(category_name=category, user=instance)
