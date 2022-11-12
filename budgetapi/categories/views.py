@@ -4,7 +4,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from .models import Category
 from .serializers import CategorySerializer
-from .permissions import IsAuthenticatedAdminOrAuthor
+from budgetapi.permissions import IsAuthenticatedAdminOrAuthor
 
 class CategoryList(generics.ListCreateAPIView):
     permission_classes = (
