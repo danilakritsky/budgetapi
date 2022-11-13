@@ -11,18 +11,20 @@ class TransactionAdminSerializer(serializers.ModelSerializer):
             "datetime",
             "category",
             "amount",
-            "description"
+            "company",
+            "description",
         )
 
         model = Transaction
 
+
 class TransactionAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
-        exclude = ('id',)
+        exclude = ("id",)
         model = Transaction
 
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
-        exclude = ('id', 'user')
+        exclude = ("id", "user")
         model = Transaction

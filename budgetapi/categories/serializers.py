@@ -16,11 +16,11 @@ class CategoryAdminSerializer(serializers.ModelSerializer):
 
 class CategoryAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
-        exclude = ('id',)
+        exclude = ("id",)
         model = Category
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        exclude = ('id', 'user')
+        exclude = ("id", "user")
         model = Category

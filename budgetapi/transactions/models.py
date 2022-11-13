@@ -26,7 +26,9 @@ class Transaction(models.Model):
         blank=False,
     )
 
-    description = models.TextField(null=True, blank=False)
+    company = models.CharField(null=False, blank=True, max_length=25)
+
+    description = models.TextField(null=False, blank=True)
 
     def __str__(self):
         return f"{self.category} {self.datetime} {self.amount}"

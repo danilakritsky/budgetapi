@@ -1,5 +1,6 @@
-from rest_framework.renderers import BrowsableAPIRenderer
 import rest_framework.exceptions as exceptions
+from rest_framework.renderers import BrowsableAPIRenderer
+
 
 class MyBrowsableAPIRenderer(BrowsableAPIRenderer):
     """
@@ -8,8 +9,8 @@ class MyBrowsableAPIRenderer(BrowsableAPIRenderer):
 
     def get_context(self, *args, **kwargs):
         context = super().get_context(*args, **kwargs)
-        if args[2]['request'] in ('PUT', 'PATCH'):
-            context['display_edit_forms'] = True
+        if args[2]["request"] in ("PUT", "PATCH"):
+            context["display_edit_forms"] = True
         return context
 
     def get_rendered_html_form(self, data, view, method, request):
