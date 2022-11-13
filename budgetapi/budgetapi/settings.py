@@ -40,9 +40,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     "rest_framework",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
     "django_filters",
     "rest_framework.authtoken",
+    "dj_rest_auth.registration",
+    "dj_rest_auth",
     "users.apps.UsersConfig",
     "categories.apps.CategoriesConfig",
     "transactions.apps.TransactionsConfig",
@@ -71,6 +77,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.request",
             ],
         },
     },
@@ -155,3 +162,6 @@ REST_FRAMEWORK = {
         "django_filters.rest_framework.DjangoFilterBackend",
     ),
 }
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" # new
+SITE_ID = 1 # new
