@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import Transaction
 
 
-class TransactionSerializer(serializers.ModelSerializer):
+class TransactionAdminSerializer(serializers.ModelSerializer):
     class Meta:
         fields = (
             "id",
@@ -14,4 +14,15 @@ class TransactionSerializer(serializers.ModelSerializer):
             "description"
         )
 
+        model = Transaction
+
+class TransactionAdminUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        exclude = ('id',)
+        model = Transaction
+
+
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        exclude = ('id', 'user')
         model = Transaction

@@ -22,6 +22,10 @@ DEFAULT_CATEGORIES: list[str] = [
 class Category(models.Model):
     class Meta:
         verbose_name_plural = "categories"
+        constraints = [models.UniqueConstraint(
+            fields=('user', 'category_name'),
+            name='unique_user_category'
+        )]
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

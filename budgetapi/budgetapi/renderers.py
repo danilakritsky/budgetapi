@@ -20,8 +20,6 @@ class MyBrowsableAPIRenderer(BrowsableAPIRenderer):
         Bypass permission check and render forms for all allowed methods.
         see https://stackoverflow.com/questions/52730182/
         """
-
         if method not in view.allowed_methods:
             return False
-        
         return True
