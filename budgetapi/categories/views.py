@@ -34,10 +34,8 @@ class CategoryList(generics.ListAPIView):
     
     def post(self, request, format=None):
         # Check for duplicate categories and inject current user if necessary."""
-        if not request.user.is_superuser:
+        if not request.user.is_superuser or not request.data.get('user'):
             request.data['user'] = request.user.id
-        elif not request.data.get('user'):
-                request.data['user'] = request.user.id
 
         serializer = CategoryAdminSerializer(data=request.data)
         if serializer.is_valid():
