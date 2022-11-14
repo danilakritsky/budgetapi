@@ -35,7 +35,7 @@ class CustomConfirmEmailView(ConfirmEmailView):
         # confirm email on get
         self.object.confirm(request)
         return redirect('rest_login')
-    
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/categories/", include("categories.urls")),

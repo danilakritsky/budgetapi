@@ -4,8 +4,9 @@ from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
-
+from rest_framework.permissions import IsAuthenticated
 from budgetapi.permissions import IsAuthenticatedAdminOrOwner
+from django.db.models import F, Subquery, OuterRef
 
 from .filters import CustomOrderingFilter, TransactionFilter
 from .models import Transaction
@@ -15,6 +16,7 @@ from .serializers import (
     TransactionSerializer,
 )
 
+from django.db.models import Sum
 
 class TransactionList(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticatedAdminOrOwner,)
@@ -108,3 +110,43 @@ class TransactionDetail(generics.RetrieveUpdateDestroyAPIView):
         obj = self.get_object(pk)
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class TransactionStats(generics.RetrieveAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return Transaction.objects.all()
+        return Transaction.objects.filter(user=self.request.user)
+    
+    def get(self, request):
+        mode = request.query_params.get('mode')
+        if not mode:
+            return Response({'message': 'Mode not specified.'})
+        else:
+            queryset = self.get_queryset()
+            if not queryset:
+                return Response({'message': 'No transaction found.'})
+        if mode == 'balance':
+            return Response(
+                queryset
+                .values('amount')
+                .aggregate(current_balance=Sum('amount'))
+            )
+        if mode == 'categories':
+            result = (
+                queryset
+                .values('category__category_name')
+                .annotate(total=Sum('amount'))
+                .order_by('-total')
+                # rename category field
+                .annotate(category=F('category__category_name'))
+                .values('category', 'total')
+            )
+            return Response({
+                category['category']: category['total']
+                for category in result
+            })
+        return Response(serializer.data)
