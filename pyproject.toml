@@ -13,10 +13,11 @@ python = "^3.10"
 [tool.poetry.group.dev.dependencies]
 black = "^22.10.0"
 isort = "^5.10.1"
-flake8 = "^5.0.4"
 mypy = "^0.990"
 bandit = "^1.7.4"
 safety = "^2.3.1"
+ruff = "^0.0.118"
+f = "^0.0.1"
 
 
 [tool.poetry.group.api.dependencies]
@@ -44,3 +45,9 @@ disable_error_code = ["union-attr", "return", "no-redef"]
 profile = "black"
 line_length = 79
 lines_after_imports = 2
+
+[tool.ruff]
+line-length = 79
+ignore = [
+    "E999"
+]

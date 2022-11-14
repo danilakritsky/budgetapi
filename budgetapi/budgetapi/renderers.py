@@ -1,4 +1,3 @@
-import rest_framework.exceptions as exceptions
 from rest_framework.renderers import BrowsableAPIRenderer
 
 

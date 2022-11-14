@@ -1,14 +1,25 @@
+from typing import Callable
+
 from categories.models import Category
+from django.db.models import F, OuterRef, Subquery, Sum
 from django_filters import rest_framework as filters
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import OrderingFilter
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from budgetapi.permissions import IsAuthenticatedAdminOrOwner
-from django.db.models import F, Subquery, OuterRef
 
 from .filters import CustomOrderingFilter, TransactionFilter
+from .helpers import (
+    get_balance,
+    get_categories_summary,
+    get_companies_summary,
+    get_current_week_summary,
+    get_monthly_summary,
+    get_summary,
+)
 from .models import Transaction
 from .serializers import (
     TransactionAdminSerializer,
@@ -16,7 +27,6 @@ from .serializers import (
     TransactionSerializer,
 )
 
-from django.db.models import Sum
 
 class TransactionList(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticatedAdminOrOwner,)
@@ -47,7 +57,6 @@ class TransactionList(generics.ListCreateAPIView):
         return Transaction.objects.filter(user=self.request.user)
 
     def post(self, request):
-        # Check for duplicate categories and inject current user if necessary."""
         if not request.user.is_superuser or not request.data.get("user"):
             request.data["user"] = request.user.id
         category_ids = Category.objects.filter(
@@ -111,6 +120,7 @@ class TransactionDetail(generics.RetrieveUpdateDestroyAPIView):
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class TransactionStats(generics.RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Transaction.objects.all()
@@ -120,33 +130,29 @@ class TransactionStats(generics.RetrieveAPIView):
         if self.request.user.is_superuser:
             return Transaction.objects.all()
         return Transaction.objects.filter(user=self.request.user)
-    
+
     def get(self, request):
-        mode = request.query_params.get('mode')
+        mode = request.query_params.get("mode")
         if not mode:
-            return Response({'message': 'Mode not specified.'})
+            return Response({"message": "Mode not specified."})
         else:
             queryset = self.get_queryset()
             if not queryset:
-                return Response({'message': 'No transaction found.'})
-        if mode == 'balance':
-            return Response(
-                queryset
-                .values('amount')
-                .aggregate(current_balance=Sum('amount'))
-            )
-        if mode == 'categories':
-            result = (
-                queryset
-                .values('category__category_name')
-                .annotate(total=Sum('amount'))
-                .order_by('-total')
-                # rename category field
-                .annotate(category=F('category__category_name'))
-                .values('category', 'total')
-            )
-            return Response({
-                category['category']: category['total']
-                for category in result
-            })
-        return Response(serializer.data)
+                return Response({"message": "No transaction found."})
+        func: Callable
+        match mode:
+            case "balance":
+                func = get_balance
+            case "categories":
+                func = get_categories_summary
+            case "companies":
+                func = get_companies_summary
+            case "monthly":
+                func = get_monthly_summary
+            case "week":
+                func = get_current_week_summary
+            case "summary":
+                func = get_summary
+            case _:
+                return Response({"message": f"Unknown mode {mode!r}"})
+        return Response(func(queryset))

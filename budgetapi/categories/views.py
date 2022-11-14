@@ -1,9 +1,8 @@
 from django.db import IntegrityError
 from django.http import Http404
 from rest_framework import generics, permissions, status
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from budgetapi.permissions import IsAuthenticatedAdminOrOwner
 
@@ -33,7 +32,7 @@ class CategoryList(generics.ListAPIView):
         return Category.objects.filter(user=self.request.user)
 
     def post(self, request, format=None):
-        # Check for duplicate categories and inject current user if necessary."""
+        # Check for duplicate categories and inject current user if necessary.
         if not request.user.is_superuser or not request.data.get("user"):
             request.data["user"] = request.user.id
 

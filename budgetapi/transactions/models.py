@@ -4,6 +4,8 @@ from django.db import models
 
 
 class Transaction(models.Model):
+    """Class representing users transactions."""
+
     class Meta:
         verbose_name_plural = "transactions"
 
