@@ -8,10 +8,30 @@ services:
     container_name: api
     volumes:
       - ./budgetapi/:/root/budgetapi
-    env_file:
-      - .env
     tty: true  # persist (should use 'sh' as entrypoint)
-    command: poetry run python3 budgetapi/manage.py runserver 0.0.0.0:8000
+    command: >
+      sh -c "
+            poetry run python manage.py makemigrations &&
+            poetry run python manage.py migrate &&
+            poetry run python manage.py ensure_superuser \
+              --username ${SUPERUSER_USERNAME:-root} \
+              --password ${SUPERUSER_PASSWORD:-root} \
+              --email ${SUPERUSER_EMAIL:-''} &&
+            poetry run python manage.py runserver 0.0.0.0:8000"
     ports:
       - 8000:8000
-  
+    depends_on:
+      - postgres
+  postgres:
+      image: postgres
+      container_name: postgres
+      environment:
+        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-budgetapi}
+        - POSTGRES_DB=${POSTGRES_DB:-budgetapi}
+        - POSTGRES_USER=${POSTGRES_USER:-budgetapi}
+        
+      restart: always
+      ports:
+        - ${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}
+      volumes:
+        - ./.postgresdata:/var/lib/postgresql/data

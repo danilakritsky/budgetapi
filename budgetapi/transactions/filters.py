@@ -47,17 +47,17 @@ class CustomOrderingFilter(OrderingFilter):
 
         if ordering:
 
-            def get_ordering_tuple(term: str):
+            def get_ordering_tuple(term: str) -> tuple[str, str]:
                 if term.startswith("-"):
                     return ("-", term[1:])
                 else:
                     return ("", term)
 
-            def make_datetime_term(date_or_time_term: tuple[str]):
+            def make_datetime_term(date_or_time_term: str) -> str:
                 modifier, term = get_ordering_tuple(date_or_time_term)
                 return modifier + "datetime__" + term
 
-            def is_datepart_term(term: str):
+            def is_datepart_term(term: str) -> bool:
                 return term in ("date", "-date", "time", "-time")
 
             ordering = [

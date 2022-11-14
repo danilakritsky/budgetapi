@@ -19,7 +19,7 @@ def get_categories_summary(queryset):
     return {category["category"]: category["total"] for category in result}
 
 
-def get_companies_summary(queryset):
+def get_companies_summary(queryset) -> dict:
     result = (
         queryset.values("company")
         .annotate(total=Sum("amount"))
@@ -29,7 +29,7 @@ def get_companies_summary(queryset):
     return {company["company"]: company["total"] for company in result}
 
 
-def get_monthly_summary(queryset):
+def get_monthly_summary(queryset) -> dict:
     result = (
         queryset.values("datetime__year", "datetime__month")
         .annotate(total=Sum("amount"))
@@ -44,7 +44,7 @@ def get_monthly_summary(queryset):
     }
 
 
-def get_summary(queryset):
+def get_summary(queryset) -> dict:
     return {
         "current_balance": get_balance(queryset)["current_balance"],
         "monthly_balance": get_monthly_summary(queryset),
@@ -61,7 +61,7 @@ def get_current_week_data(queryset):
     return this_week
 
 
-def get_current_week_summary(queryset):
+def get_current_week_summary(queryset) -> dict:
     this_week = get_current_week_data(queryset)
     return {
         "current_week_balance": (
@@ -72,7 +72,7 @@ def get_current_week_summary(queryset):
     }
 
 
-def get_current_week_text_summary(queryset):
+def get_current_week_text_summary(queryset) -> str:
     start_of_week = datetime.date.today() - datetime.timedelta(
         days=datetime.date.today().weekday()
     )
