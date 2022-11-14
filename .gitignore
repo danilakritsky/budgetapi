@@ -136,3 +136,6 @@ migrations/
 
 # ignore ruff cache
 .ruff_cache/
+
+# ignore staticfiles
+./budgetapi/staticfiles/

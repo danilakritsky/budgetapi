@@ -4,9 +4,14 @@ ARG PYTHON_VERSION=3.11.0
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+ARG HOME_DIR=/home/budgetapi
+RUN addgroup budgetapi \
+    && adduser --home ${HOME_DIR} --ingroup budgetapi budgetapi
+ENV HOME=${HOME_DIR}
+
 # Configure Poetry
 ENV POETRY_VERSION=1.2.2
-ENV POETRY_VENV=/root/.local
+ENV POETRY_VENV=${HOME}/.local
 
 # Install poetry
 RUN python3 -m venv ${POETRY_VENV} \
@@ -18,9 +23,14 @@ ENV PATH="${PATH}:${POETRY_VENV}/bin"
 RUN poetry config virtualenvs.create false
 RUN poetry completions bash >> ~/.bash_completion
 
+COPY pyproject.toml ${HOME}
+COPY README.md ${HOME}
+COPY budgetapi/ ${HOME}/budgetapi/
 
-WORKDIR /root
-COPY pyproject.toml .
+RUN chown -R budgetapi:budgetapi $HOME
+USER budgetapi
+WORKDIR ${HOME}
 RUN poetry install
-COPY budgetapi/ /root/budgetapi
-WORKDIR /root/budgetapi
+
+WORKDIR ${HOME}/budgetapi
+
