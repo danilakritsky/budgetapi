@@ -27,6 +27,8 @@ django-filter = "^22.1"
 dj-rest-auth = "^2.2.5"
 django-allauth = "^0.51.0"
 psycopg2-binary = "^2.9.5"
+django-cors-headers = "^3.13.0"
+gunicorn = "^20.1.0"
 
 [build-system]
 requires = ["poetry-core"]

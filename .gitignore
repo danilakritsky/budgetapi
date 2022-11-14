@@ -133,3 +133,6 @@ migrations/
 
 # ignore postgred volumes
 .postgresdata/
+
+# ignore ruff cache
+.ruff_cache/

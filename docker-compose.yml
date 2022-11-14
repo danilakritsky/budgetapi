@@ -4,8 +4,8 @@ services:
   budgetapi:
     build: 
       context: .
-      dockerfile: Dockerfile
-    container_name: api
+      dockerfile: Dockerfile.api
+    container_name: budgetapi
     volumes:
       - ./budgetapi/:/root/budgetapi
     tty: true  # persist (should use 'sh' as entrypoint)
@@ -14,24 +14,34 @@ services:
             poetry run python manage.py makemigrations &&
             poetry run python manage.py migrate &&
             poetry run python manage.py ensure_superuser \
-              --username ${SUPERUSER_USERNAME:-root} \
-              --password ${SUPERUSER_PASSWORD:-root} \
-              --email ${SUPERUSER_EMAIL:-''} &&
-            poetry run python manage.py runserver 0.0.0.0:8000"
-    ports:
-      - 8000:8000
+              --username ${BUDGETAPI_SUPERUSER_USERNAME:-root} \
+              --password ${BUDGETAPI_SUPERUSER_PASSWORD:-root} \
+              --email ${BUDGETAPI_SUPERUSER_EMAIL:-''} &&
+            poetry run python manage.py collectstatic &&
+            gunicorn budgetapi.wsgi:application --bind 0.0.0.0:8000"
+    expose:
+      - 8000
     depends_on:
       - postgres
   postgres:
-      image: postgres
+      image: postgres:15.1
       container_name: postgres
       environment:
-        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-budgetapi}
-        - POSTGRES_DB=${POSTGRES_DB:-budgetapi}
-        - POSTGRES_USER=${POSTGRES_USER:-budgetapi}
+        - POSTGRES_PASSWORD=${BUDGETAPI_POSTGRES_PASSWORD:-budgetapi}
+        - POSTGRES_DB=${BUDGETAPI_POSTGRES_DB:-budgetapi}
+        - POSTGRES_USER=${BUDGETAPI_POSTGRES_USER:-budgetapi}
         
       restart: always
       ports:
-        - ${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}
+        - ${BUDGETAPI_POSTGRES_PORT:-5432}:${BUDGETAPI_POSTGRES_PORT:-5432}
       volumes:
         - ./.postgresdata:/var/lib/postgresql/data
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    ports:
+      - ${BUDGETAPI_NGINX_PORT:-1337}:80
+    depends_on:
+      - budgetapi
+    volumes:
+      - ./budgetapi/staticfiles/:/home/budgetapi/staticfiles
