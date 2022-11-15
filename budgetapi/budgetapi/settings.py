@@ -10,8 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
+
+from celery.schedules import crontab
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,20 +25,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv(
-    'BUDGETAPI_SECRET_KEY',
-    "django-insecure-*(l7q3av)0!lq)^g#3!++%$l7=67@q5b+qp(a(4n%!a1l9^_-o"
+    "BUDGETAPI_SECRET_KEY",
+    "django-insecure-*(l7q3av)0!lq)^g#3!++%$l7=67@q5b+qp(a(4n%!a1l9^_-o",
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False if os.getenv('BUDGETAPI_ALLOWED_HOSTS') else True
+DEBUG = False if os.getenv("BUDGETAPI_ALLOWED_HOSTS") else True
 
 # NOTE: https://www.divio.com/blog/django-allowed-hosts-explained/
 ALLOWED_HOSTS: list[str] = (
-    # provide a comma delimited list of allowed hosts 
-    os.getenv('BUDGETAPI_ALLOWED_HOSTS').replace(' ', "").split(',')
-    if os.getenv('BUDGETAPI_ALLOWED_HOSTS')
+    # provide a comma delimited list of allowed hosts
+    os.getenv("BUDGETAPI_ALLOWED_HOSTS").replace(" ", "").split(",")
+    if os.getenv("BUDGETAPI_ALLOWED_HOSTS")
     else []
- )
+)
 
 
 # Application definition
@@ -57,6 +60,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "dj_rest_auth.registration",
     "dj_rest_auth",
+    "celeryapp",  # regiser tasks
     "users.apps.UsersConfig",
     "categories.apps.CategoriesConfig",
     "transactions.apps.TransactionsConfig",
@@ -94,19 +98,20 @@ TEMPLATES = [
 ]
 
 CORS_ALLOWED_ORIGINS = (
-    os.getenv('BUDGETAPI_CORS_ALLOWED_ORIGINS').replace(' ', "").split(',')
-    if os.getenv('BUDGETAPI_CORS_ALLOWED_ORIGINS')
+    os.getenv("BUDGETAPI_CORS_ALLOWED_ORIGINS").replace(" ", "").split(",")
+    if os.getenv("BUDGETAPI_CORS_ALLOWED_ORIGINS")
     else []
- )
+)
 
 # NOTE: https://github.com/adamchainz/django-cors-headers#csrf-integration
 CSRF_TRUSTED_ORIGINS = (
-    os.getenv('BUDGETAPI_CSRF_TRUSTED_ORIGINS').replace(' ', "").split(',')
-    if os.getenv('BUDGETAPI_CSRF_TRUSTED_ORIGINS')
+    os.getenv("BUDGETAPI_CSRF_TRUSTED_ORIGINS").replace(" ", "").split(",")
+    if os.getenv("BUDGETAPI_CSRF_TRUSTED_ORIGINS")
     else [
-        f"http://localhost:{os.getenv('BUDGETAPI_NGINX_PORT', '1337')}"
+        "http://localhost:8000",
+        f"http://localhost:{os.getenv('BUDGETAPI_NGINX_PORT', '1337')}",
     ]
- )
+)
 
 
 WSGI_APPLICATION = "budgetapi.wsgi.application"
@@ -121,7 +126,9 @@ DATABASES = {
         "NAME": os.getenv("BUDGETAPI_POSTGRES_DB", "budgetapi"),
         "USER": os.getenv("BUDGETAPI_POSTGRES_USER", "budgetapi"),
         "PASSWORD": os.getenv("BUDGETAPI_POSTGRES_PASSWORD", "budgetapi"),
-        "HOST": os.getenv("BUDGETAPI_POSTGRES_HOST") or "postgres" or "localhost",
+        "HOST": os.getenv("BUDGETAPI_POSTGRES_HOST")
+        or "postgres"
+        or "localhost",
         "PORT": os.getenv("BUDGETAPI_POSTGRES_PORT", "5432"),
     }
 }
@@ -132,9 +139,7 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": (
-            "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-        ),
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
         "NAME": (
@@ -158,11 +163,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -170,6 +172,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -195,7 +198,38 @@ REST_FRAMEWORK = {
     ),
 }
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  # new
-SITE_ID = 1  # new
+SITE_ID = 1
 
-STATIC_ROOT = BASE_DIR / "staticfiles"
+# ========== EMAIL SETTINGS ============
+DEFAULT_FROM_EMAIL = os.getenv("BUDGETAPI_FROM_EMAIL", "noreply@email.com")
+EMAIL_BACKEND = (
+    "django.core.mail.backends."
+    + os.getenv("BUDGETAPI_EMAIL_BACKEND", "console")
+    + ".EmailBackend"
+)
+
+EMAIL_HOST = os.getenv("BUDGETAPI_EMAIL_HOST", "localhost")
+EMAIL_PORT = os.getenv("BUDGETAPI_EMAIL_PORT", 25)
+EMAIL_USE_TLS = os.getenv("BUDGETAPI_USE_TLS", False)
+EMAIL_HOST_USER = os.getenv("BUDGETAPI_EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("BUDGETAPI_EMAIL_HOST_PASSWORD", "")
+
+
+# ========== CELERY SETTINGS ============
+CELERY_BROKER_URL = "redis://redis:6379"
+CELERY_RESULT_BACKEND = "redis://redis:6379"
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = os.getenv("BUDGETAPI_CELERY_TIMEZONE", TIME_ZONE)
+# celery beat config
+CELERY_BEAT_SCHEDULE = {
+    "celery_check": {
+        "task": "celery_check",  # NOTE: name you gave the task
+        "schedule": crontab(minute="*/1"),
+    },
+    "send_emails": {
+        "task": "send_emails",
+        "schedule": crontab(hour=9, minute=0),
+    },
+}

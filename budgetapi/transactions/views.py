@@ -127,8 +127,6 @@ class TransactionStats(generics.RetrieveAPIView):
     serializer_class = TransactionSerializer
 
     def get_queryset(self):
-        if self.request.user.is_superuser:
-            return Transaction.objects.all()
         return Transaction.objects.filter(user=self.request.user)
 
     def get(self, request):
@@ -138,7 +136,7 @@ class TransactionStats(generics.RetrieveAPIView):
         else:
             queryset = self.get_queryset()
             if not queryset:
-                return Response({"message": "No transaction found."})
+                return Response({"message": "No user transactions found."})
         func: Callable
         match mode:
             case "balance":
