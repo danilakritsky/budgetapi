@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "corsheaders",
     "django_filters",
+    "drf_spectacular",
     "rest_framework.authtoken",
     "dj_rest_auth.registration",
     "dj_rest_auth",
@@ -109,7 +110,6 @@ CSRF_TRUSTED_ORIGINS = (
     if os.getenv("BUDGETAPI_CSRF_TRUSTED_ORIGINS")
     else [
         "http://localhost:8000",
-        f"http://localhost:{os.getenv('BUDGETAPI_NGINX_PORT', '1337')}",
     ]
 )
 
@@ -139,7 +139,7 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",  # noqa: E501
     },
     {
         "NAME": (
@@ -196,6 +196,7 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": (
         "django_filters.rest_framework.DjangoFilterBackend",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SITE_ID = 1
@@ -232,4 +233,12 @@ CELERY_BEAT_SCHEDULE = {
         "task": "send_emails",
         "schedule": crontab(hour=9, minute=0),
     },
+}
+
+# ========== DRF SPECTACULAR SETTINGS ============
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Budget API",
+    "DESCRIPTION": "An API to track your spendings.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }

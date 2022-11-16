@@ -1,12 +1,15 @@
 FROM python:3.11
 
-ARG PYTHON_VERSION=3.11.0
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 ARG HOME_DIR=/home/budgetapi
 RUN addgroup budgetapi \
-    && adduser --home ${HOME_DIR} --ingroup budgetapi budgetapi
+    && adduser \
+    --home ${HOME_DIR} \
+    --disabled-password \
+    --ingroup budgetapi \
+    --gecos GECOS budgetapi
 ENV HOME=${HOME_DIR}
 
 # Configure Poetry
@@ -30,7 +33,7 @@ COPY budgetapi/ ${HOME}/budgetapi/
 RUN chown -R budgetapi:budgetapi $HOME
 USER budgetapi
 WORKDIR ${HOME}
-RUN poetry install
+RUN poetry install --without dev
 
 WORKDIR ${HOME}/budgetapi
 

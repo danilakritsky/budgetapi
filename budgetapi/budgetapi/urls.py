@@ -18,6 +18,12 @@ from django.contrib import admin
 from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import include, path, re_path
+from django.views.generic import RedirectView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 
 
 class CustomConfirmEmailView(ConfirmEmailView):
@@ -34,6 +40,10 @@ class CustomConfirmEmailView(ConfirmEmailView):
 
 
 urlpatterns = [
+    path(
+        "",
+        RedirectView.as_view(url="/api/auth/login/?next=/api/v1/categories/"),
+    ),
     path("admin/", admin.site.urls),
     path("api/v1/categories/", include("categories.urls")),
     path("api/v1/transactions/", include("transactions.urls")),
@@ -46,5 +56,16 @@ urlpatterns = [
     ),
     path(
         "api/v1/auth/registration/", include("dj_rest_auth.registration.urls")
+    ),
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "api/schema/redoc/",
+        SpectacularRedocView.as_view(url_name="schema"),
+        name="redoc",
+    ),
+    path(
+        "api/schema/swagger/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger",
     ),
 ]

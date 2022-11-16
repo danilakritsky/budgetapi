@@ -2,6 +2,7 @@ import datetime
 import random
 
 from categories.models import DEFAULT_CATEGORIES, Category
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.signals import post_save
@@ -16,6 +17,7 @@ class User(AbstractUser):
 @receiver(post_save, sender=User)
 def add_new_user_categories(instance, created, **kwargs):
     """Create default categories when a new user is created."""
+    User = get_user_model()
     if created and not instance.is_superuser:
         Category.objects.bulk_create(
             [
@@ -26,12 +28,11 @@ def add_new_user_categories(instance, created, **kwargs):
     # create a testuser after first superuser has been created
     elif User.objects.all().count() == 1:
         # generating test data
-        user = User(
+        user = User.objects.create_user(
             username="testuser",
-            password="testuser",
+            password="1234test",
             email="testuser@example.com",
         )
-        user.save()  # categories are generated automatically
         categories = Category.objects.filter(user=user)
         for transaction_num in range(1, 20):
             Transaction(
